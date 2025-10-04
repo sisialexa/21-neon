@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>21 Neon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px #00f7ff, 0 0 40px #00f7ff;
+            color: #00f7ff;
+            letter-spacing: 4px;
+            font-weight: 900;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 2rem;
+        }
+
+        .player-panel {
+            background: rgba(10, 14, 39, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid rgba(0, 247, 255, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.2);
+        }
+
+        .player-panel.active {
+            border-color: #ff006e;
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.6), 0 0 60px rgba(255, 0, 110, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .player-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .status-tag {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #00f7ff;
+            color: #000;
+            box-shadow: 0 0 10px #00f7ff;
+        }
+
+        .status-stand {
+            background: #8b00ff;
+            color: #fff;
+            box-shadow: 0 0 10px #8b00ff;
+        }
+
+        .status-bust {
+            background: #ff006e;
+            color: #fff;
+            box-shadow: 0 0 10px #ff006e;
+        }
+
+        .status-winner {
+            background: #ffbe0b;
+            color: #000;
+            box-shadow: 0 0 10px #ffbe0b;
+        }
+
+        .status-loser {
+            background: #666;
+            color: #fff;
+            box-shadow: 0 0 10px #666;
+        }
+
+        .status-tie {
+            background: #ffa500;
+            color: #000;
+            box-shadow: 0 0 10px #ffa500;
+        }
+
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            min-height: 120px;
+        }
+
+        .card {
+            width: 80px;
+            height: 110px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            animation: cardSlideIn 0.3s ease-out;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes cardSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .card-1 { 
+            background: #ff006e; 
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 0, 110, 0.5), 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+        .card-2 { 
+            background: #fb5607; 
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(251, 86, 7, 0.5), 0 0 20px rgba(251, 86, 7, 0.3);
+        }
+        .card-3 { 
+            background: #ffbe0b; 
+            color: #000;
+            box-shadow: 0 4px 12px rgba(255, 190, 11, 0.5), 0 0 20px rgba(255, 190, 11, 0.3);
+        }
+        .card-4 { 
+            background: #8338ec; 
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(131, 56, 236, 0.5), 0 0 20px rgba(131, 56, 236, 0.3);
+        }
+        .card-5 { 
+            background: #3a86ff; 
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(58, 134, 255, 0.5), 0 0 20px rgba(58, 134, 255, 0.3);
+        }
+        .card-6 { 
+            background: #06ffa5; 
+            color: #000;
+            box-shadow: 0 4px 12px rgba(6, 255, 165, 0.5), 0 0 20px rgba(6, 255, 165, 0.3);
+        }
+        .card-7 { 
+            background: #00f7ff; 
+            color: #000;
+            box-shadow: 0 4px 12px rgba(0, 247, 255, 0.5), 0 0 20px rgba(0, 247, 255, 0.3);
+        }
+        .card-8 { 
+            background: #ff00ff; 
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 0, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.3);
+        }
+        .card-9 { 
+            background: #7209b7; 
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(114, 9, 183, 0.5), 0 0 20px rgba(114, 9, 183, 0.3);
+        }
+        .card-10 { 
+            background: linear-gradient(135deg, #8b00ff 0%, #ff006e 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(139, 0, 255, 0.5), 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+        .card-11 { 
+            background: linear-gradient(135deg, #ffbe0b 0%, #ff006e 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 190, 11, 0.5), 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+
+        .card-hidden {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #00f7ff;
+            box-shadow: 0 4px 12px rgba(0, 247, 255, 0.3);
+        }
+
+        .card-hidden::before {
+            content: '?';
+        }
+
+        .total-display {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button:focus-visible {
+            outline: 3px solid #00f7ff;
+            outline-offset: 2px;
+        }
+
+        .btn-hit {
+            background: #00f7ff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.5);
+        }
+
+        .btn-hit:hover:not(:disabled) {
+            box-shadow: 0 0 30px rgba(0, 247, 255, 0.8);
+        }
+
+        .btn-stand {
+            background: #8b00ff;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(139, 0, 255, 0.5);
+        }
+
+        .btn-stand:hover:not(:disabled) {
+            box-shadow: 0 0 30px rgba(139, 0, 255, 0.8);
+        }
+
+        .btn-reset {
+            background: #ff006e;
+            color: white;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+        }
+
+        .btn-reset:hover:not(:disabled) {
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.8);
+        }
+
+        .status-message {
+            background: rgba(0, 247, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: 1px solid rgba(0, 247, 255, 0.3);
+            color: #00f7ff;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                width: 70px;
+                height: 95px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>21 NEON</h1>
+    
+    <div class="status-message" id="statusMessage" role="status" aria-live="polite">
+        Press Hit (H) or Stand (S) to play
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <!-- Player panels will be dynamically inserted here -->
+    </div>
+
+    <div class="controls">
+        <button class="btn-hit" id="hitBtn" onclick="hit()" accesskey="h">Hit (H)</button>
+        <button class="btn-stand" id="standBtn" onclick="stand()" accesskey="s">Stand (S)</button>
+    </div>
+    
+    <button class="btn-reset" id="resetBtn" onclick="resetGame()" style="margin-top: 1rem;">Play Again</button>
+
+    <div class="sr-only" aria-live="assertive" id="ariaAnnounce"></div>
+
+    <script>
+        // ===== GAME STATE =====
+        let gameState = {
+            rngSeed: 0,
+            players: [],
+            dealer: { hand: [], total: 0 },
+            turnIndex: 0,
+            phase: 'playerTurns' // 'playerTurns', 'dealerTurn', 'results'
+        };
+
+        // ===== SEEDED RNG =====
+        function initRNG() {
+            // Try to use crypto for better randomness
+            if (window.crypto && window.crypto.getRandomValues) {
+                const arr = new Uint32Array(1);
+                window.crypto.getRandomValues(arr);
+                gameState.rngSeed = arr[0];
+            } else {
+                // Fallback to Date-based seed
+                gameState.rngSeed = Date.now() % 2147483647;
+            }
+        }
+
+        // Simple seeded random number generator (Linear Congruential Generator)
+        function seededRandom() {
+            gameState.rngSeed = (gameState.rngSeed * 1664525 + 1013904223) % 4294967296;
+            return gameState.rngSeed / 4294967296;
+        }
+
+        // Draw a number between 1 and 11
+        function drawNumber() {
+            return Math.floor(seededRandom() * 11) + 1;
+        }
+
+        // ===== GAME LOGIC =====
+        
+        // Calculate total for a hand
+        function calcTotal(hand) {
+            return hand.reduce((sum, num) => sum + num, 0);
+        }
+
+        // Initialize game
+        function startGame() {
+            initRNG();
+            
+            gameState.players = [
+                { id: 1, name: 'Player 1', hand: [], status: 'active', total: 0 },
+                { id: 2, name: 'Player 2', hand: [], status: 'active', total: 0 }
+            ];
+            
+            gameState.dealer = { hand: [], total: 0 };
+            gameState.turnIndex = 0;
+            gameState.phase = 'playerTurns';
+            
+            dealInitialHands();
+            updateUI();
+            setActivePlayer(0);
+            announce('Game started. Player 1\'s turn.');
+        }
+
+        // Deal 2 cards to each player and dealer
+        function dealInitialHands() {
+            // Deal to players
+            for (let player of gameState.players) {
+                player.hand.push(drawNumber());
+                player.hand.push(drawNumber());
+                player.total = calcTotal(player.hand);
+            }
+            
+            // Deal to dealer
+            gameState.dealer.hand.push(drawNumber());
+            gameState.dealer.hand.push(drawNumber());
+            gameState.dealer.total = calcTotal(gameState.dealer.hand);
+        }
+
+        // Set active player
+        function setActivePlayer(index) {
+            gameState.players.forEach((p, i) => {
+                if (i === index && p.status === 'active') {
+                    // Keep active
+                } else if (p.status === 'active') {
+                    // Not current turn, but still in game
+                }
+            });
+            updateUI();
+        }
+
+        // Player hits
+        function hit() {
+            if (gameState.phase !== 'playerTurns') return;
+            
+            const currentPlayer = gameState.players[gameState.turnIndex];
+            if (currentPlayer.status !== 'active') return;
+            
+            const card = drawNumber();
+            currentPlayer.hand.push(card);
+            currentPlayer.total = calcTotal(currentPlayer.hand);
+            
+            announce(`${currentPlayer.name} drew a ${card}. Total: ${currentPlayer.total}`);
+            
+            // Check for bust
+            if (currentPlayer.total > 21) {
+                currentPlayer.status = 'bust';
+                announce(`${currentPlayer.name} busts!`);
+                nextTurn();
+            }
+            
+            updateUI();
+        }
+
+        // Player stands
+        function stand() {
+            if (gameState.phase !== 'playerTurns') return;
+            
+            const currentPlayer = gameState.players[gameState.turnIndex];
+            if (currentPlayer.status !== 'active') return;
+            
+            currentPlayer.status = 'stand';
+            announce(`${currentPlayer.name} stands with ${currentPlayer.total}`);
+            nextTurn();
+        }
+
+        // Move to next turn
+        function nextTurn() {
+            gameState.turnIndex++;
+            
+            // Check if we still have active players
+            if (gameState.turnIndex < gameState.players.length) {
+                const nextPlayer = gameState.players[gameState.turnIndex];
+                if (nextPlayer.status === 'active') {
+                    setActivePlayer(gameState.turnIndex);
+                    announce(`${nextPlayer.name}'s turn.`);
+                } else {
+                    nextTurn(); // Skip if already bust/stand
+                }
+            } else {
+                // All players done, dealer's turn
+                gameState.phase = 'dealerTurn';
+                playDealer();
+            }
+            
+            updateUI();
+        }
+
+        // Dealer plays
+        function playDealer() {
+            announce('Dealer\'s turn. Revealing hidden card...');
+            updateUI(); // Show dealer's hidden card
+            
+            // Dealer draws until >= 17
+            setTimeout(() => {
+                let draws = 0;
+                while (gameState.dealer.total < 17) {
+                    const card = drawNumber();
+                    gameState.dealer.hand.push(card);
+                    gameState.dealer.total = calcTotal(gameState.dealer.hand);
+                    draws++;
+                }
+                
+                if (gameState.dealer.total > 21) {
+                    announce(`Dealer busts with ${gameState.dealer.total}!`);
+                } else {
+                    announce(`Dealer stands with ${gameState.dealer.total}`);
+                }
+                
+                gameState.phase = 'results';
+                determineWinners();
+            }, 1000);
+        }
+
+        // Determine winners
+        function determineWinners() {
+            // Get all non-bust players
+            const activePlayers = gameState.players.filter(p => p.status !== 'bust');
+            const dealerTotal = gameState.dealer.total;
+            const dealerBust = dealerTotal > 21;
+            
+            // Include dealer in competition if not bust
+            let competitors = [...activePlayers];
+            if (!dealerBust) {
+                competitors.push({ name: 'Dealer', total: dealerTotal, isDealer: true });
+            }
+            
+            // If no competitors (all busted), it's a draw
+            if (competitors.length === 0) {
+                updateUI();
+                announce('Everyone busted! No winner!');
+                return;
+            }
+            
+            // Find the highest score <= 21
+            let bestScore = 0;
+            let winners = [];
+            
+            competitors.forEach(competitor => {
+                if (competitor.total <= 21 && competitor.total > bestScore) {
+                    bestScore = competitor.total;
+                    winners = [competitor];
+                } else if (competitor.total === bestScore) {
+                    winners.push(competitor);
+                }
+            });
+            
+            // Special case: Both players have exactly 21
+            const player1 = gameState.players[0];
+            const player2 = gameState.players[1];
+            
+            if (player1.status !== 'bust' && player2.status !== 'bust' && 
+                player1.total === 21 && player2.total === 21) {
+                // If dealer also has 21, it's a three-way tie
+                if (!dealerBust && dealerTotal === 21) {
+                    player1.status = 'tie';
+                    player2.status = 'tie';
+                    updateUI();
+                    announce('Three-way tie! Both players and dealer have 21! No one wins!');
+                    return;
+                } else {
+                    // Both players win against dealer
+                    player1.status = 'winner';
+                    player2.status = 'winner';
+                    updateUI();
+                    announce('Both players have 21! Both players win!');
+                    return;
+                }
+            }
+            
+            // Handle ties with dealer at any score
+            const playerWinners = winners.filter(w => !w.isDealer);
+            const dealerWins = winners.some(w => w.isDealer);
+            
+            if (dealerWins && playerWinners.length > 0) {
+                // Tie between dealer and player(s) - no one wins
+                gameState.players.forEach(player => {
+                    if (playerWinners.includes(player)) {
+                        player.status = 'tie'; // Mark as tie for display
+                    } else if (player.status !== 'bust') {
+                        player.status = 'loser';
+                    }
+                });
+                updateUI();
+                if (playerWinners.length === 1) {
+                    announce(`Tie! ${playerWinners[0].name} and dealer both have ${bestScore}! No one wins!`);
+                } else {
+                    announce(`Tie! ${playerWinners.map(w => w.name).join(' and ')} and dealer all have ${bestScore}! No one wins!`);
+                }
+                return;
+            }
+            
+            // Determine final winners and losers
+            if (dealerWins && playerWinners.length === 0) {
+                // Only dealer wins
+                gameState.players.forEach(player => {
+                    if (player.status !== 'bust') {
+                        player.status = 'loser';
+                    }
+                });
+                updateUI();
+                announce(`Dealer wins with ${bestScore}!`);
+            } else if (winners.length === 1) {
+                // Single player wins
+                const winner = winners[0];
+                gameState.players.forEach(player => {
+                    if (player === winner) {
+                        player.status = 'winner';
+                    } else if (player.status !== 'bust') {
+                        player.status = 'loser';
+                    }
+                });
+                updateUI();
+                announce(`${winner.name} wins with ${winner.total}!`);
+            } else if (winners.length > 1) {
+                // Multiple players tie (no dealer)
+                winners.forEach(winner => {
+                    winner.status = 'winner';
+                });
+                gameState.players.forEach(player => {
+                    if (!winners.includes(player) && player.status !== 'bust') {
+                        player.status = 'loser';
+                    }
+                });
+                updateUI();
+                announce(`Tie! ${winners.map(w => w.name).join(' and ')} tie with ${bestScore}!`);
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            startGame();
+        }
+
+        // ===== UI RENDERING =====
+        
+        function updateUI() {
+            const container = document.getElementById('gameContainer');
+            container.innerHTML = '';
+            
+            // Render players
+            gameState.players.forEach((player, index) => {
+                const panel = createPlayerPanel(player, index === gameState.turnIndex && gameState.phase === 'playerTurns');
+                container.appendChild(panel);
+            });
+            
+            // Render dealer
+            const dealerPanel = createDealerPanel();
+            container.appendChild(dealerPanel);
+            
+            // Update controls
+            const isPlayerTurn = gameState.phase === 'playerTurns';
+            const currentPlayer = gameState.players[gameState.turnIndex];
+            const canAct = isPlayerTurn && currentPlayer && currentPlayer.status === 'active';
+            
+            document.getElementById('hitBtn').disabled = !canAct;
+            document.getElementById('standBtn').disabled = !canAct;
+        }
+
+        function createPlayerPanel(player, isActive) {
+            const panel = document.createElement('div');
+            panel.className = `player-panel ${isActive ? 'active' : ''}`;
+            
+            const header = document.createElement('div');
+            header.className = 'player-header';
+            
+            const name = document.createElement('div');
+            name.className = 'player-name';
+            name.textContent = player.name;
+            
+            const status = document.createElement('span');
+            status.className = `status-tag status-${player.status}`;
+            status.textContent = player.status;
+            
+            header.appendChild(name);
+            header.appendChild(status);
+            
+            const cardsContainer = document.createElement('div');
+            cardsContainer.className = 'cards-container';
+            
+            player.hand.forEach(num => {
+                const card = document.createElement('div');
+                card.className = `card card-${num}`;
+                card.textContent = num;
+                cardsContainer.appendChild(card);
+            });
+            
+            const total = document.createElement('div');
+            total.className = 'total-display';
+            total.textContent = `Total: ${player.total}`;
+            
+            panel.appendChild(header);
+            panel.appendChild(cardsContainer);
+            panel.appendChild(total);
+            
+            return panel;
+        }
+
+        function createDealerPanel() {
+            const panel = document.createElement('div');
+            panel.className = 'player-panel';
+            
+            const header = document.createElement('div');
+            header.className = 'player-header';
+            
+            const name = document.createElement('div');
+            name.className = 'player-name';
+            name.textContent = 'Dealer';
+            
+            header.appendChild(name);
+            
+            const cardsContainer = document.createElement('div');
+            cardsContainer.className = 'cards-container';
+            
+            // Show first card always, hide second until dealer's turn
+            gameState.dealer.hand.forEach((num, index) => {
+                const card = document.createElement('div');
+                
+                if (index === 1 && gameState.phase === 'playerTurns') {
+                    // Hidden card
+                    card.className = 'card card-hidden';
+                    card.setAttribute('aria-label', 'Hidden card');
+                } else {
+                    card.className = `card card-${num}`;
+                    card.textContent = num;
+                }
+                
+                cardsContainer.appendChild(card);
+            });
+            
+            const total = document.createElement('div');
+            total.className = 'total-display';
+            
+            if (gameState.phase === 'playerTurns') {
+                total.textContent = `Showing: ${gameState.dealer.hand[0]}`;
+            } else {
+                total.textContent = `Total: ${gameState.dealer.total}`;
+            }
+            
+            panel.appendChild(header);
+            panel.appendChild(cardsContainer);
+            panel.appendChild(total);
+            
+            return panel;
+        }
+
+        function announce(message) {
+            document.getElementById('statusMessage').textContent = message;
+            document.getElementById('ariaAnnounce').textContent = message;
+        }
+
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'h' && !document.getElementById('hitBtn').disabled) {
+                hit();
+            } else if (e.key.toLowerCase() === 's' && !document.getElementById('standBtn').disabled) {
+                stand();
+            }
+        });
+
+        // ===== START GAME ON LOAD =====
+        startGame();
+    </script>
+</body>
+</html>
